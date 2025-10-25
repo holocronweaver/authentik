@@ -41,9 +41,7 @@ export class SessionEnd extends BaseStage<SessionEndChallenge, unknown> {
         document.body.appendChild(iframe);
 
         if (slsBinding === "redirect") {
-            const params = new URLSearchParams();
-            params.set("SAMLResponse", logoutResponse);
-            iframe.src = `${slsUrl}?${params.toString()}`;
+            iframe.src = logoutResponse;
         } else {
             // For POST binding, create form that targets the iframe
             const form = document.createElement("form");
