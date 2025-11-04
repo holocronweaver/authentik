@@ -6084,6 +6084,109 @@ paths:
           $ref: '#/components/responses/ValidationErrorResponse'
         '403':
           $ref: '#/components/responses/GenericErrorResponse'
+  /files/:
+    get:
+      operationId: files_list
+      description: List files from backend (source of truth), complement with DB metadata
+      parameters:
+      - in: query
+        name: usage
+        schema:
+          type: string
+          enum:
+          - media
+          - reports
+          default: media
+        description: Filter files by usage type
+      tags:
+      - files
+      security:
+      - authentik: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/File'
+          description: ''
+        '400':
+          $ref: '#/components/responses/ValidationErrorResponse'
+        '403':
+          $ref: '#/components/responses/GenericErrorResponse'
+  /files/delete/:
+    delete:
+      operationId: files_delete_destroy
+      description: Delete file from backend and DB
+      parameters:
+      - $ref: '#/components/parameters/QueryName'
+      - in: query
+        name: usage
+        schema:
+          type: string
+          enum:
+          - media
+          - reports
+          default: media
+        description: Usage type of the file
+      tags:
+      - files
+      security:
+      - authentik: []
+      responses:
+        '200':
+          description: No response body
+        '400':
+          $ref: '#/components/responses/ValidationErrorResponse'
+        '403':
+          $ref: '#/components/responses/GenericErrorResponse'
+  /files/upload/:
+    post:
+      operationId: files_upload_create
+      description: Upload file with UUID name, store metadata in DB
+      tags:
+      - files
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/FileUploadRequestRequest'
+        required: true
+      security:
+      - authentik: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/File'
+          description: ''
+        '400':
+          $ref: '#/components/responses/ValidationErrorResponse'
+        '403':
+          $ref: '#/components/responses/GenericErrorResponse'
+  /files/usages/:
+    get:
+      operationId: files_usages_list
+      description: Get available usage types
+      tags:
+      - files
+      security:
+      - authentik: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Usage'
+          description: ''
+        '400':
+          $ref: '#/components/responses/ValidationErrorResponse'
+        '403':
+          $ref: '#/components/responses/GenericErrorResponse'
   /flows/bindings/:
     get:
       operationId: flows_bindings_list
@@ -31226,6 +31329,7 @@ components:
       - authentik.crypto
       - authentik.enterprise
       - authentik.events
+      - authentik.files
       - authentik.flows
       - authentik.outposts
       - authentik.policies.dummy
@@ -35272,6 +35376,42 @@ components:
           minLength: 1
       required:
       - object_pk
+    File:
+      type: object
+      description: Base serializer class which doesn't implement create/update methods
+      properties:
+        uuid:
+          type: string
+          format: uuid
+          readOnly: true
+        friendly_name:
+          type: string
+          readOnly: true
+        url:
+          type: string
+          readOnly: true
+        mime_type:
+          type: string
+          readOnly: true
+        size:
+          type: integer
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        usage:
+          allOf:
+          - $ref: '#/components/schemas/UsageEnum'
+          readOnly: true
+      required:
+      - created_at
+      - friendly_name
+      - mime_type
+      - size
+      - url
+      - usage
+      - uuid
     FilePathRequest:
       type: object
       description: Serializer to upload file
@@ -35291,6 +35431,20 @@ components:
         clear:
           type: boolean
           default: false
+    FileUploadRequestRequest:
+      type: object
+      description: Base serializer class which doesn't implement create/update methods
+      properties:
+        file:
+          type: string
+          format: binary
+        friendly_name:
+          type: string
+        usage:
+          $ref: '#/components/schemas/UsageEnum'
+      required:
+      - file
+      - usage
     Flow:
       type: object
       description: Flow Serializer
@@ -51675,6 +51829,22 @@ components:
           description: Number of passwords to check against.
       required:
       - name
+    Usage:
+      type: object
+      description: Base serializer class which doesn't implement create/update methods
+      properties:
+        value:
+          type: string
+        label:
+          type: string
+      required:
+      - label
+      - value
+    UsageEnum:
+      enum:
+      - media
+      - reports
+      type: string
     UsedBy:
       type: object
       description: A list of all objects referencing the queried object

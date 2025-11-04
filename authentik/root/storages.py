@@ -1,4 +1,5 @@
 """authentik storage backends"""
+# TODO: DEPRECATED - Remove this file once migration to authentik.files backend is complete
 
 import os
 from urllib.parse import parse_qsl, urlsplit
@@ -39,7 +40,7 @@ class S3Storage(BaseS3Storage):
     @property
     def session_profile(self) -> str | None:
         """Get session profile"""
-        return CONFIG.refresh("storage.media.s3.session_profile", None)
+        return CONFIG.refresh("storage.s3.session_profile", None)
 
     @session_profile.setter
     def session_profile(self, value: str):
@@ -48,7 +49,7 @@ class S3Storage(BaseS3Storage):
     @property
     def access_key(self) -> str | None:
         """Get access key"""
-        return CONFIG.refresh("storage.media.s3.access_key", None)
+        return CONFIG.refresh("storage.s3.access_key", None)
 
     @access_key.setter
     def access_key(self, value: str):
@@ -57,7 +58,7 @@ class S3Storage(BaseS3Storage):
     @property
     def secret_key(self) -> str | None:
         """Get secret key"""
-        return CONFIG.refresh("storage.media.s3.secret_key", None)
+        return CONFIG.refresh("storage.s3.secret_key", None)
 
     @secret_key.setter
     def secret_key(self, value: str):
@@ -66,7 +67,7 @@ class S3Storage(BaseS3Storage):
     @property
     def security_token(self) -> str | None:
         """Get security token"""
-        return CONFIG.refresh("storage.media.s3.security_token", None)
+        return CONFIG.refresh("storage.s3.security_token", None)
 
     @security_token.setter
     def security_token(self, value: str):

@@ -3,6 +3,7 @@ package web
 import (
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/go-http-utils/etag"
 	"github.com/gorilla/mux"
@@ -61,15 +62,35 @@ func (ws *WebServer) configureStatic() {
 		).ServeHTTP(rw, r)
 	})
 
-	// Media files, if backend is file
-	if config.Get().Storage.Media.Backend == "file" {
-		fsMedia := http.FileServer(http.Dir(config.Get().Storage.Media.File.Path))
+	// Media and Reports files, if backend is file
+	if config.Get().Storage.Backend == "file" {
+		fsFiles := http.FileServer(http.Dir(config.Get().Storage.File.Path))
+		fileHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			// Files are stored as UUIDs without extensions on disk
+			// URLs contain extensions for browser compatibility (e.g., /media/public/{uuid}.png)
+			// Strip extension from URL path before serving
+			path := r.URL.Path
+			if idx := strings.LastIndex(path, "."); idx != -1 {
+				// Check if there's a path separator after the dot (e.g., file.name/path)
+				if !strings.Contains(path[idx:], "/") {
+					r.URL.Path = path[:idx]
+				}
+			}
+			w.Header().Set("Content-Security-Policy", "default-src 'none'; style-src 'unsafe-inline'; sandbox")
+			fsFiles.ServeHTTP(w, r)
+		})
+
+		// Serve media files: /media/{schema}/{uuid}{.ext}
 		staticRouter.PathPrefix(config.Get().Web.Path).PathPrefix("/media/").Handler(pathStripper(
-			http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				w.Header().Set("Content-Security-Policy", "default-src 'none'; style-src 'unsafe-inline'; sandbox")
-				fsMedia.ServeHTTP(w, r)
-			}),
+			fileHandler,
 			"media/",
+			config.Get().Web.Path,
+		))
+
+		// Serve report files: /reports/{schema}/{uuid}{.ext}
+		staticRouter.PathPrefix(config.Get().Web.Path).PathPrefix("/reports/").Handler(pathStripper(
+			fileHandler,
+			"reports/",
 			config.Get().Web.Path,
 		))
 	}

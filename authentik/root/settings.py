@@ -474,29 +474,30 @@ STORAGES = {
 }
 
 
-# Media files
-if CONFIG.get("storage.media.backend", "file") == "s3":
+# TODO: DEPRECATED - Remove Django storages once migration to new file backend is complete
+# Media files - legacy Django storage system (being replaced by authentik.files)
+if CONFIG.get("storage.backend", "file") == "s3":
     STORAGES["default"] = {
         "BACKEND": "authentik.root.storages.S3Storage",
         "OPTIONS": {
             # How to talk to S3
-            "session_profile": CONFIG.get("storage.media.s3.session_profile", None),
-            "access_key": CONFIG.get("storage.media.s3.access_key", None),
-            "secret_key": CONFIG.get("storage.media.s3.secret_key", None),
-            "security_token": CONFIG.get("storage.media.s3.security_token", None),
-            "region_name": CONFIG.get("storage.media.s3.region", None),
-            "use_ssl": CONFIG.get_bool("storage.media.s3.use_ssl", True),
-            "endpoint_url": CONFIG.get("storage.media.s3.endpoint", None),
-            "bucket_name": CONFIG.get("storage.media.s3.bucket_name"),
+            "session_profile": CONFIG.get("storage.s3.session_profile", None),
+            "access_key": CONFIG.get("storage.s3.access_key", None),
+            "secret_key": CONFIG.get("storage.s3.secret_key", None),
+            "security_token": CONFIG.get("storage.s3.security_token", None),
+            "region_name": CONFIG.get("storage.s3.region", None),
+            "use_ssl": CONFIG.get_bool("storage.s3.use_ssl", True),
+            "endpoint_url": CONFIG.get("storage.s3.endpoint", None),
+            "bucket_name": CONFIG.get("storage.s3.bucket_name"),
             "default_acl": "private",
             "querystring_auth": True,
             "signature_version": "s3v4",
             "file_overwrite": False,
             "location": "media",
             "url_protocol": (
-                "https:" if CONFIG.get("storage.media.s3.secure_urls", True) else "http:"
+                "https:" if CONFIG.get("storage.s3.secure_urls", True) else "http:"
             ),
-            "custom_domain": CONFIG.get("storage.media.s3.custom_domain", None),
+            "custom_domain": CONFIG.get("storage.s3.custom_domain", None),
         },
     }
 # Fallback on file storage backend
@@ -504,7 +505,7 @@ else:
     STORAGES["default"] = {
         "BACKEND": "authentik.root.storages.FileStorage",
         "OPTIONS": {
-            "location": Path(CONFIG.get("storage.media.file.path")),
+            "location": Path(CONFIG.get("storage.file.path", "./data") + "/media"),
             "base_url": CONFIG.get("web.path", "/") + "media/",
         },
     }
