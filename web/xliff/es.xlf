@@ -5901,7 +5901,7 @@ Las vinculaciones a grupos/usuarios se verifican en función del usuario del eve
         
       </trans-unit>
       <trans-unit id="sef50d248448e0df1">
-        <source>Yes (<x id="0" equiv-text="${item.privateKeyType?.toUpperCase()}"/>)</source>
+        <source>Yes (<x id="0" equiv-text="${item.keyType?.toUpperCase()}"/>)</source>
         <target>Sí (
         <x id="0" equiv-text="${item.privateKeyType?.toUpperCase()}"/>)</target>
         

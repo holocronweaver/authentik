@@ -5866,7 +5866,7 @@ Bindings to groups/users are checked against the user of the event.</source>
 
       </trans-unit>
       <trans-unit id="sef50d248448e0df1">
-        <source>Yes (<x id="0" equiv-text="${item.privateKeyType?.toUpperCase()}"/>)</source>
+        <source>Yes (<x id="0" equiv-text="${item.keyType?.toUpperCase()}"/>)</source>
   <target>Ŷēś (<x id="0" equiv-text="${item.privateKeyType?.toUpperCase()}"/>)</target>
 
       </trans-unit>
