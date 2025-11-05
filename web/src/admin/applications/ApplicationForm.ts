@@ -64,17 +64,34 @@ export class ApplicationForm extends WithCapabilitiesConfig(ModelForm<Applicatio
 
         const currentSlug = this.instance?.slug;
 
+        // For updates, only send changed fields
+        if (currentSlug && this.instance) {
+            const changedFields: Partial<Application> = {};
+
+            // Compare each field and only include if changed
+            (Object.keys(applicationRequest) as Array<keyof Application>).forEach((key) => {
+                const newValue = applicationRequest[key];
+                const oldValue = this.instance?.[key];
+
+                // Include field if it's different from the original
+                if (JSON.stringify(newValue) !== JSON.stringify(oldValue)) {
+                    (changedFields as any)[key] = newValue;
+                }
+            });
+
+            applicationRequest = changedFields as Application;
+        }
+
         const app = await (currentSlug
-            ? this.#api.coreApplicationsUpdate({
-                  applicationRequest,
+            ? this.#api.coreApplicationsPartialUpdate({
                   slug: currentSlug,
+                  patchedApplicationRequest: applicationRequest,
               })
             : this.#api.coreApplicationsCreate({ applicationRequest }));
 
         const nextSlug = app.slug;
 
         if (currentSlug && currentSlug !== nextSlug) {
-            // TODO: This needs refining.
             this.instancePk = nextSlug;
             navigate(`/core/applications/${nextSlug}`);
         }

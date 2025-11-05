@@ -2847,61 +2847,6 @@ paths:
           $ref: '#/components/responses/ValidationErrorResponse'
         '403':
           $ref: '#/components/responses/GenericErrorResponse'
-  /core/applications/{slug}/set_icon/:
-    post:
-      operationId: core_applications_set_icon_create
-      description: Set application icon
-      parameters:
-      - in: path
-        name: slug
-        schema:
-          type: string
-          description: Internal application name, used in URLs.
-        required: true
-      tags:
-      - core
-      requestBody:
-        content:
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/FileUploadRequest'
-      security:
-      - authentik: []
-      responses:
-        '200':
-          description: Success
-        '400':
-          description: Bad request
-        '403':
-          $ref: '#/components/responses/GenericErrorResponse'
-  /core/applications/{slug}/set_icon_url/:
-    post:
-      operationId: core_applications_set_icon_url_create
-      description: Set application icon (as URL)
-      parameters:
-      - in: path
-        name: slug
-        schema:
-          type: string
-          description: Internal application name, used in URLs.
-        required: true
-      tags:
-      - core
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/FilePathRequest'
-        required: true
-      security:
-      - authentik: []
-      responses:
-        '200':
-          description: Success
-        '400':
-          description: Bad request
-        '403':
-          $ref: '#/components/responses/GenericErrorResponse'
   /core/applications/{slug}/used_by/:
     get:
       operationId: core_applications_used_by_list
@@ -3894,8 +3839,8 @@ paths:
         '403':
           $ref: '#/components/responses/GenericErrorResponse'
   /core/transactional/applications/:
-    put:
-      operationId: core_transactional_applications_update
+    post:
+      operationId: core_transactional_applications_create
       description: Convert data into a blueprint, validate it and apply it
       tags:
       - core
@@ -31477,6 +31422,9 @@ components:
           format: uri
         meta_icon:
           type: string
+          maxLength: 500
+        meta_icon_url:
+          type: string
           nullable: true
           description: |-
             Get the URL to the App Icon image.
@@ -31497,7 +31445,7 @@ components:
       required:
       - backchannel_providers_obj
       - launch_url
-      - meta_icon
+      - meta_icon_url
       - name
       - pk
       - provider_obj
@@ -31565,6 +31513,9 @@ components:
         meta_launch_url:
           type: string
           format: uri
+        meta_icon:
+          type: string
+          maxLength: 500
         meta_description:
           type: string
         meta_publisher:
@@ -42990,6 +42941,9 @@ components:
         meta_launch_url:
           type: string
           format: uri
+        meta_icon:
+          type: string
+          maxLength: 500
         meta_description:
           type: string
         meta_publisher:

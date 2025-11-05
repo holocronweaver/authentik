@@ -593,15 +593,22 @@ class Application(SerializerModel, PolicyBindingModel):
         from authentik.files.backend import FileBackend, S3Backend, Usage, get_storage_config
         from django.db import connection
 
+        # Strip schema prefix if present (e.g., 'public/file.png' -> 'file.png')
+        # Files are displayed with schema prefix for clarity, but stored paths should be relative
+        file_path = self.meta_icon
+        schema_prefix = f"{connection.schema_name}/"
+        if file_path.startswith(schema_prefix):
+            file_path = file_path.removeprefix(schema_prefix)
+
         # Use media usage for application icons
         backend_type = get_storage_config(Usage.MEDIA, "backend", "file")
 
         if backend_type == "s3":
             backend = S3Backend(Usage.MEDIA)
-            return backend.file_url(self.meta_icon)
+            return backend.file_url(file_path)
         else:
             backend = FileBackend(Usage.MEDIA)
-            return backend.file_url(self.meta_icon)
+            return backend.file_url(file_path)
 
     def get_launch_url(self, user: Optional["User"] = None) -> str | None:
         """Get launch URL if set, otherwise attempt to get launch URL based on provider."""

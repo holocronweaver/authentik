@@ -4672,6 +4672,11 @@
                     "type": "string",
                     "title": "Meta launch url"
                 },
+                "meta_icon": {
+                    "type": "string",
+                    "maxLength": 500,
+                    "title": "Meta icon"
+                },
                 "meta_description": {
                     "type": "string",
                     "title": "Meta description"
