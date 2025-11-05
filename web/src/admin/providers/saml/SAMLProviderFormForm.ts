@@ -266,6 +266,7 @@ export function renderForm({
                     <ak-crypto-certificate-search
                         .certificate=${provider.signingKp}
                         @input=${setHasSigningKp}
+                        singleton
                         include-details
                         .allowedKeyTypes=${[KeyTypeEnum.Rsa, KeyTypeEnum.Ec, KeyTypeEnum.Dsa]}
                     ></ak-crypto-certificate-search>

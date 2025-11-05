@@ -12,6 +12,7 @@ import {
     CryptoApi,
     CryptoCertificatekeypairsListRequest,
     KeyTypeEnum,
+    KeyTypeEnum,
 } from "@goauthentik/api";
 
 import { msg } from "@lit/localize";
@@ -68,19 +69,25 @@ export class AkCryptoCertificateSearch extends CustomListenerElement(AKElement) 
     public singleton = false;
 
     /**
-     * Set to `true` to include certificate details (fingerprints, expiry, private key type, etc.)
-     * in the API response. Defaults to `false` for performance.
+     * Set to `true` to include certificate details (fingerprints, expiry, certificate subject, key type)
+     * in the API response.
+     * Each returned certificate's PEM data must be parsed using cryptography library,
+     * public keys extracted, and hashes computed. With large result sets, this can add a lot of time
+     * to responses.
+     * Only enable when you actually need the detailed fields displayed in the UI.
+     * For simple certificate selection dropdowns, leave this as `false` (default).
      * @attr
      */
     @property({ type: Boolean, attribute: "include-details" })
     public includeDetails = false;
 
     /**
-     * Optional array of allowed key algorithm types to filter certificates.
-     * When set, only certificates with matching key algorithms will be shown.
-     * Works for both full keypairs and certificate-only entries.
-     * Example: [KeyTypeEnum.Rsa, KeyTypeEnum.Ec]
+     * When allowedKeyTypes is set, only certificates or keypairs with matching
+     * key algorithms will be shown. Since certificates must be parsed to
+     * extract algorithm details, an instance with many certificates may experience
+     * long delays and server performance slowdowns. Avoid setting this field whenever possible.
      * @attr
+     * @example [KeyTypeEnum.Rsa, KeyTypeEnum.Ec]
      */
     @property({ type: Array, attribute: "allowed-key-types" })
     public allowedKeyTypes?: KeyTypeEnum[];
