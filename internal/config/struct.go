@@ -60,8 +60,7 @@ type ListenConfig struct {
 }
 
 type StorageConfig struct {
-	Backend string            `yaml:"backend" env:"BACKEND, overwrite"`
-	File    StorageFileConfig `yaml:"file" env:", prefix=FILE__"`
+	File StorageFileConfig `yaml:"file" env:", prefix=FILE__"`
 }
 
 type StorageFileConfig struct {

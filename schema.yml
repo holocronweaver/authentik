@@ -6087,8 +6087,9 @@ paths:
   /files/:
     get:
       operationId: files_list
-      description: List files from backend (source of truth), complement with DB metadata
+      description: List files from storage backend (filesystem or S3)
       parameters:
+      - $ref: '#/components/parameters/QuerySearch'
       - in: query
         name: usage
         schema:
@@ -6118,7 +6119,7 @@ paths:
   /files/delete/:
     delete:
       operationId: files_delete_destroy
-      description: Delete file from backend and DB
+      description: Delete file from storage backend
       parameters:
       - $ref: '#/components/parameters/QueryName'
       - in: query
@@ -6144,7 +6145,7 @@ paths:
   /files/upload/:
     post:
       operationId: files_upload_create
-      description: Upload file with UUID name, store metadata in DB
+      description: Upload file to storage backend
       tags:
       - files
       requestBody:
@@ -31478,8 +31479,12 @@ components:
           type: string
           nullable: true
           description: |-
-            Get the URL to the App Icon image. If the name is /static or starts with http
-            it is returned as-is
+            Get the URL to the App Icon image.
+
+            Handles:
+            - File paths from authentik.files storage (e.g., "my-icon.png")
+            - Font Awesome icons (fa://fa-icon-name)
+            - Static paths (/static/...)
           readOnly: true
         meta_description:
           type: string
@@ -35380,11 +35385,7 @@ components:
       type: object
       description: Base serializer class which doesn't implement create/update methods
       properties:
-        uuid:
-          type: string
-          format: uuid
-          readOnly: true
-        friendly_name:
+        name:
           type: string
           readOnly: true
         url:
@@ -35396,22 +35397,16 @@ components:
         size:
           type: integer
           readOnly: true
-        created_at:
-          type: string
-          format: date-time
-          readOnly: true
         usage:
           allOf:
           - $ref: '#/components/schemas/UsageEnum'
           readOnly: true
       required:
-      - created_at
-      - friendly_name
       - mime_type
+      - name
       - size
       - url
       - usage
-      - uuid
     FilePathRequest:
       type: object
       description: Serializer to upload file
@@ -35438,7 +35433,7 @@ components:
         file:
           type: string
           format: binary
-        friendly_name:
+        path:
           type: string
         usage:
           $ref: '#/components/schemas/UsageEnum'

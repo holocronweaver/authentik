@@ -17,12 +17,10 @@ import { html, TemplateResult } from "lit";
 import { customElement, property } from "lit/decorators.js";
 
 interface FileItem {
-    uuid: string;
-    friendly_name: string;
+    name: string;
     url: string;
     mime_type: string;
     size: number;
-    created_at: string;
     usage: string;
 }
 
@@ -65,33 +63,56 @@ export class FileListPage extends TablePage<FileItem> {
         const api = new FilesApi(DEFAULT_CONFIG);
         const response: any = await api.filesList({
             usage: this.usage as any,
+            ...(this.search ? { search: this.search } : {}),
         });
 
         return response as PaginatedResponse<FileItem>;
     }
 
     protected columns: TableColumn[] = [
-        [msg("Name"), "friendly_name"],
+        [msg("Name"), "name"],
         [msg("Type")],
         [msg("Size")],
-        [msg("Created")],
         [msg("Actions"), null, msg("Row Actions")],
     ];
 
+    renderToolbar(): TemplateResult {
+        return html`
+            <select
+                class="pf-c-form-control"
+                @change=${(e: Event) => {
+                    const target = e.target as HTMLSelectElement;
+                    this.usage = target.value as UsageEnum;
+                    this.fetch();
+                }}
+            >
+                ${this.usageTypes.map(
+                    (usageType) => html`
+                        <option value=${usageType.value} ?selected=${this.usage === usageType.value}>
+                            ${usageType.label}
+                        </option>
+                    `,
+                )}
+            </select>
+            ${super.renderToolbar()}
+        `;
+    }
+
     renderToolbarSelected(): TemplateResult {
         const disabled = this.selectedElements.length < 1;
+        const count = this.selectedElements.length;
         return html`<ak-forms-delete-bulk
-            objectLabel=${msg("File(s)")}
+            objectLabel=${count === 1 ? msg("file") : msg("files")}
             .objects=${this.selectedElements}
             .metadata=${(item: FileItem) => {
                 return [
-                    { key: msg("Name"), value: item.friendly_name },
+                    { key: msg("Name"), value: item.name },
                     { key: msg("Type"), value: item.mime_type },
                 ];
             }}
             .delete=${(item: FileItem) => {
                 return new FilesApi(DEFAULT_CONFIG).filesDeleteDestroy({
-                    name: item.uuid,
+                    name: item.name,
                     usage: item.usage as any,
                 });
             }}
@@ -111,16 +132,10 @@ export class FileListPage extends TablePage<FileItem> {
             return Math.round(bytes / Math.pow(k, i) * 100) / 100 + " " + sizes[i];
         };
 
-        const formatDate = (dateStr: string) => {
-            if (!dateStr) return "-";
-            return new Date(dateStr).toLocaleString();
-        };
-
         return [
-            html`<div>${item.friendly_name}</div>`,
+            html`<div>${item.name}</div>`,
             html`<div>${item.mime_type || "-"}</div>`,
             html`<div>${formatBytes(item.size)}</div>`,
-            html`<div>${formatDate(item.created_at)}</div>`,
             html`<div>
                 <a
                     class="pf-c-button pf-m-secondary"
@@ -134,38 +149,6 @@ export class FileListPage extends TablePage<FileItem> {
                 </a>
             </div>`,
         ];
-    }
-
-    renderSectionBefore(): TemplateResult {
-        return html`
-            <div class="pf-c-toolbar">
-                <div class="pf-c-toolbar__content">
-                    <div class="pf-c-toolbar__group">
-                        <div class="pf-c-toolbar__item">
-                            <select
-                                class="pf-c-form-control"
-                                @change=${(e: Event) => {
-                                    const target = e.target as HTMLSelectElement;
-                                    this.usage = target.value as UsageEnum;
-                                    this.fetch();
-                                }}
-                            >
-                                ${this.usageTypes.map(
-                                    (usageType) => html`
-                                        <option
-                                            value=${usageType.value}
-                                            ?selected=${this.usage === usageType.value}
-                                        >
-                                            ${usageType.label}
-                                        </option>
-                                    `,
-                                )}
-                            </select>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
     }
 
     renderObjectCreate(): TemplateResult {

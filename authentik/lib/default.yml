@@ -165,5 +165,21 @@ storage:
     # bucket_name: "authentik-files"
     # How to render file URLs
     # custom_domain: null
-    secure_urls: True
+    secure_urls: true
     presigned_expiry: 3600
+
+  # Usage-specific overrides (optional)
+  # These override the default storage settings for specific usage types
+  # Uncomment and configure as needed:
+
+  # media:
+  #   backend: s3  # Use S3 for media files
+  #   s3:
+  #     bucket_name: "authentik-media"
+  #     # Other S3 settings inherited from storage.s3 unless overridden
+
+  # reports:
+  #   backend: file  # Use local filesystem for reports
+  #   file:
+  #     path: ./reports
+  #     # Other file settings inherited from storage.file unless overridden

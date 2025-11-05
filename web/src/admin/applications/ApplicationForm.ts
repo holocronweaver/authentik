@@ -1,5 +1,5 @@
 import "#admin/applications/ProviderSelectModal";
-import "#components/ak-file-input";
+import "#components/ak-file-search-input";
 import "#components/ak-radio-input";
 import "#components/ak-slug-input";
 import "#components/ak-switch-input";
@@ -26,7 +26,7 @@ import { ifPresent } from "#elements/utils/attributes";
 import { iconHelperText } from "#admin/helperText";
 import { policyEngineModes } from "#admin/policies/PolicyEngineModes";
 
-import { Application, CoreApi, Provider } from "@goauthentik/api";
+import { Application, CoreApi, Provider, UsageEnum } from "@goauthentik/api";
 
 import { msg } from "@lit/localize";
 import { html, nothing, TemplateResult } from "lit";
@@ -42,7 +42,6 @@ export class ApplicationForm extends WithCapabilitiesConfig(ModelForm<Applicatio
             slug: pk,
         });
 
-        this.clearIcon = false;
         this.backchannelProviders = app.backchannelProvidersObj || [];
 
         return app;
@@ -53,9 +52,6 @@ export class ApplicationForm extends WithCapabilitiesConfig(ModelForm<Applicatio
 
     @state()
     protected backchannelProviders: Provider[] = [];
-
-    @property({ type: Boolean })
-    public clearIcon = false;
 
     protected override getSuccessMessage(): string {
         return this.instance
@@ -76,25 +72,6 @@ export class ApplicationForm extends WithCapabilitiesConfig(ModelForm<Applicatio
             : this.#api.coreApplicationsCreate({ applicationRequest }));
 
         const nextSlug = app.slug;
-
-        if (this.can(CapabilitiesEnum.CanSaveMedia)) {
-            const icon = this.files().get("metaIcon");
-
-            if (icon || this.clearIcon) {
-                await this.#api.coreApplicationsSetIconCreate({
-                    slug: nextSlug,
-                    file: icon,
-                    clear: this.clearIcon,
-                });
-            }
-        } else {
-            await this.#api.coreApplicationsSetIconUrlCreate({
-                slug: nextSlug,
-                filePathRequest: {
-                    url: applicationRequest.metaIcon || "",
-                },
-            });
-        }
 
         if (currentSlug && currentSlug !== nextSlug) {
             // TODO: This needs refining.
@@ -119,14 +96,6 @@ export class ApplicationForm extends WithCapabilitiesConfig(ModelForm<Applicatio
             this.requestUpdate();
         };
     };
-
-    handleClearIcon(ev: Event) {
-        ev.stopPropagation();
-        if (!(ev instanceof InputEvent) || !ev.target) {
-            return;
-        }
-        this.clearIcon = !!(ev.target as HTMLInputElement).checked;
-    }
 
     public override renderForm(): TemplateResult {
         const alertMsg = msg(
@@ -213,30 +182,17 @@ export class ApplicationForm extends WithCapabilitiesConfig(ModelForm<Applicatio
                         )}
                     >
                     </ak-switch-input>
-                    ${this.can(CapabilitiesEnum.CanSaveMedia)
-                        ? html`<ak-file-input
-                                  label="${msg("Icon")}"
-                                  name="metaIcon"
-                                  value=${ifPresent(this.instance?.metaIcon)}
-                                  current=${msg("Currently set to:")}
-                              ></ak-file-input>
-                              ${this.instance?.metaIcon
-                                  ? html`
-                                        <ak-switch-input
-                                            name=""
-                                            label=${msg("Clear icon")}
-                                            help=${msg("Delete currently set icon.")}
-                                            @change=${this.handleClearIcon}
-                                        ></ak-switch-input>
-                                    `
-                                  : nothing}`
-                        : html` <ak-text-input
-                              label=${msg("Icon")}
-                              name="metaIcon"
-                              value=${this.instance?.metaIcon ?? ""}
-                              help=${iconHelperText}
-                          >
-                          </ak-text-input>`}
+                    <ak-file-search-input
+                        name="metaIcon"
+                        label=${msg("Icon")}
+                        value=${ifDefined(this.instance?.metaIcon)}
+                        .usage=${UsageEnum.Media}
+                        ?allowFontAwesome=${true}
+                        help=${msg(
+                            "Select from uploaded files, or type a Font Awesome icon (fa://fa-icon-name).",
+                        )}
+                        blankable
+                    ></ak-file-search-input>
                     <ak-text-input
                         label=${msg("Publisher")}
                         name="metaPublisher"

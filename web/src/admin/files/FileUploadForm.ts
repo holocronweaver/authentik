@@ -19,17 +19,24 @@ export class FileUploadForm extends Form<Record<string, unknown>> {
 
     async send(): Promise<void> {
         if (!this.selectedFile) {
-            throw new Error("No file selected");
+            throw new Error(msg("Please select a file"));
         }
 
         const api = new FilesApi(DEFAULT_CONFIG);
-        const friendlyName = (
-            this.shadowRoot?.querySelector<HTMLInputElement>("#friendly-name")
-        )?.value;
+        const customName = (
+            this.shadowRoot?.querySelector<HTMLInputElement>("#file-name")
+        )?.value?.trim();
+
+        // If custom name provided, append original extension
+        let finalPath = this.selectedFile.name;
+        if (customName) {
+            const ext = this.selectedFile.name.substring(this.selectedFile.name.lastIndexOf('.'));
+            finalPath = customName + ext;
+        }
 
         await api.filesUploadCreate({
             file: this.selectedFile,
-            friendlyName: friendlyName || undefined,
+            path: finalPath,
             usage: this.usage,
         } as any);
 
@@ -51,36 +58,31 @@ export class FileUploadForm extends Form<Record<string, unknown>> {
                         type="file"
                         class="pf-c-form-control"
                         id="file-input"
+                        name="file"
                         required
                         @change=${(e: Event) => {
                             const input = e.target as HTMLInputElement;
                             if (input.files && input.files.length > 0) {
                                 this.selectedFile = input.files[0];
-                                // Auto-fill friendly name if empty
-                                const nameInput =
-                                    this.shadowRoot?.querySelector<HTMLInputElement>(
-                                        "#friendly-name",
-                                    );
-                                if (nameInput && !nameInput.value) {
-                                    nameInput.value = this.selectedFile.name;
-                                }
                             }
                         }}
                     />
                 </div>
                 <div class="pf-c-form__group">
-                    <label class="pf-c-form__label" for="friendly-name">
-                        <span class="pf-c-form__label-text">${msg("Friendly Name")}</span>
+                    <label class="pf-c-form__label" for="file-name">
+                        <span class="pf-c-form__label-text">${msg("File Name")}</span>
                     </label>
-                    <input
-                        type="text"
-                        class="pf-c-form-control"
-                        id="friendly-name"
-                        placeholder=${msg("Leave empty to auto-generate")}
-                    />
-                    <p class="pf-c-form__helper-text">
-                        ${msg("Display name for the file. If empty, UUID will be used.")}
-                    </p>
+                    <div class="pf-c-form__group-control">
+                        <input
+                            type="text"
+                            class="pf-c-form-control"
+                            id="file-name"
+                            placeholder=${msg("Leave empty to use original filename")}
+                        />
+                        <p class="pf-c-form__helper-text">
+                            ${msg("Optionally rename the file (without extension). Leave empty to keep the original filename.")}
+                        </p>
+                    </div>
                 </div>
             </form>
         `;
