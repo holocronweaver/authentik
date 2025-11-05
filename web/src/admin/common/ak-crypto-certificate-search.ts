@@ -12,7 +12,6 @@ import {
     CryptoApi,
     CryptoCertificatekeypairsListRequest,
     KeyTypeEnum,
-    KeyTypeEnum,
 } from "@goauthentik/api";
 
 import { msg } from "@lit/localize";
